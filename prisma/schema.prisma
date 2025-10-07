@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int         @id @default(autoincrement())
+  name        String      @unique
+  email       String      @unique
+  password    String
+  role        String      @default("user") // user, admin, editor
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+
+  posts       Post[]
+  airdrops    Airdrop[]
+
+  @@map("users")
+}
+
+model Category {
+  id          Int          @id @default(autoincrement())
+  name        String        @unique
+  description String?
+
+  posts       Post[]
+  airdrops    Airdrop[]
+
+  @@map("categories")
+}
+
+model Post {
+  id            Int        @id @default(autoincrement())
+  title         String
+  slug          String     @unique
+  content       String?
+  thumbnail_url String?
+  created_by    Int
+  category_id   Int?
+  tag_id        Int?
+  status        String     
+  view          Int?       @default(0)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  deleted_at    DateTime?  
+
+  author    User        @relation(fields: [created_by], references: [id])
+  category  Category?   @relation(fields: [category_id], references: [id])
+  tag       Tag?        @relation(fields: [tag_id], references: [id])
+
+  @@map("posts")
+}
+
+model Tag {
+  id       Int     @id @default(autoincrement())
+  name     String  @unique
+  posts    Post[]
+
+  @@map("tags")
+}
+
+model Airdrop {
+  id          Int        @id @default(autoincrement())
+  title       String
+  slug        String     @unique
+  content     String?
+  avatar      String?
+  created_by  Int
+  category_id Int?
+  status      String? 
+  total_raise Int?
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  deleted_at  DateTime?
+
+  author    User        @relation(fields: [created_by], references: [id])
+  category  Category?   @relation(fields: [category_id], references: [id])
+
+  @@map("airdrops")
+}
+
+model Market {
+  id         Int       @id @default(autoincrement())
+  coin       String?
+  price      Float?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  @@map("markets")
+}
