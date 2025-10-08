@@ -18,7 +18,7 @@ export class CreateAirdropAction {
   constructor(private prisma: PrismaService) { }
 
   async execute(data: CreateAirdropDto) {
-    return await this.prisma.airdrops.create({
+    return await this.prisma.airdrop.create({
       data: {
         title: data.title,
         slug: data.slug,
@@ -33,5 +33,4 @@ export class CreateAirdropAction {
     });
   }
 }
-
 

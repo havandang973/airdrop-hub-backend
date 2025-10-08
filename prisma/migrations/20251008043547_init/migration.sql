@@ -1,64 +1,3 @@
-/*
-  Warnings:
-
-  - You are about to drop the `airdrop` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `category` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `comment` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `market` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `post` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `posttag` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `tag` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `user` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE `airdrop` DROP FOREIGN KEY `Airdrop_categoryId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `airdrop` DROP FOREIGN KEY `Airdrop_createdById_fkey`;
-
--- DropForeignKey
-ALTER TABLE `comment` DROP FOREIGN KEY `Comment_createdById_fkey`;
-
--- DropForeignKey
-ALTER TABLE `comment` DROP FOREIGN KEY `Comment_postId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `post` DROP FOREIGN KEY `Post_categoryId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `post` DROP FOREIGN KEY `Post_createdById_fkey`;
-
--- DropForeignKey
-ALTER TABLE `posttag` DROP FOREIGN KEY `PostTag_postId_fkey`;
-
--- DropForeignKey
-ALTER TABLE `posttag` DROP FOREIGN KEY `PostTag_tagId_fkey`;
-
--- DropTable
-DROP TABLE `airdrop`;
-
--- DropTable
-DROP TABLE `category`;
-
--- DropTable
-DROP TABLE `comment`;
-
--- DropTable
-DROP TABLE `market`;
-
--- DropTable
-DROP TABLE `post`;
-
--- DropTable
-DROP TABLE `posttag`;
-
--- DropTable
-DROP TABLE `tag`;
-
--- DropTable
-DROP TABLE `user`;
-
 -- CreateTable
 CREATE TABLE `users` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
@@ -67,7 +6,7 @@ CREATE TABLE `users` (
     `password` VARCHAR(191) NOT NULL,
     `role` VARCHAR(191) NOT NULL DEFAULT 'user',
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `users_name_key`(`name`),
     UNIQUE INDEX `users_email_key`(`email`),
@@ -97,7 +36,7 @@ CREATE TABLE `posts` (
     `status` VARCHAR(191) NOT NULL,
     `view` INTEGER NULL DEFAULT 0,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `deleted_at` DATETIME(3) NULL,
 
     UNIQUE INDEX `posts_slug_key`(`slug`),
@@ -125,7 +64,7 @@ CREATE TABLE `airdrops` (
     `status` VARCHAR(191) NULL,
     `total_raise` INTEGER NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `deleted_at` DATETIME(3) NULL,
 
     UNIQUE INDEX `airdrops_slug_key`(`slug`),
@@ -138,7 +77,7 @@ CREATE TABLE `markets` (
     `coin` VARCHAR(191) NULL,
     `price` DOUBLE NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

@@ -14,7 +14,7 @@ model User {
   password    String
   role        String      @default("user") // user, admin, editor
   created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+  updated_at  DateTime    @default(now()) @updatedAt
 
   posts       Post[]
   airdrops    Airdrop[]
@@ -45,7 +45,8 @@ model Post {
   status        String     
   view          Int?       @default(0)
   created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
+  updated_at    DateTime   @default(now()) @updatedAt
+
   deleted_at    DateTime?  
 
   author    User        @relation(fields: [created_by], references: [id])
@@ -74,7 +75,7 @@ model Airdrop {
   status      String? 
   total_raise Int?
   created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
+  updated_at  DateTime   @default(now()) @updatedAt
   deleted_at  DateTime?
 
   author    User        @relation(fields: [created_by], references: [id])
@@ -88,7 +89,7 @@ model Market {
   coin       String?
   price      Float?
   created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
+  updated_at DateTime  @default(now()) @updatedAt
 
   @@map("markets")
 }
