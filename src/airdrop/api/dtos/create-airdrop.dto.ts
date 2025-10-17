@@ -1,28 +1,34 @@
-import { IsInt, IsNumber, IsString, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsNumber, Min, IsDateString } from 'class-validator';
 
 export class CreateAirdropDto {
     @IsString()
-    title: string;
+    name: string;
+
+    @IsOptional()
+    @IsString()
+    logo?: string;
+
+    @IsOptional()
+    @IsString()
+    description?: string;
 
     @IsString()
     slug: string;
 
-    @IsString()
-    content: string;
-
-    @IsString()
-    avatar: string;
-
-    @IsString()
-    status: string;
-
+    @IsOptional()
     @IsNumber()
     @Min(0)
-    total_raise: number;
+    raise?: number;
 
-    @IsInt()
-    category_id: number;
+    @IsOptional()
+    @IsString()
+    status?: string;
 
+    @IsOptional()
+    @IsDateString()
+    date?: string;
+
+    @IsOptional()
     @IsInt()
-    created_by: number;
+    createdBy?: number;
 }
