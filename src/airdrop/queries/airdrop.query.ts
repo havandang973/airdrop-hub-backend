@@ -11,12 +11,19 @@ export class AirdropQuery {
       include: {
         createdByUser: true, // Quan hệ với User (người tạo)
         posts: true,         // Danh sách các AirdropPost trong airdrop
-        tags: true,          // Danh sách tag (qua bảng trung gian)
-        funds: true,         // Danh sách fund (qua bảng trung gian)
+        tags: true,
+        funds: {
+          include: {
+            fund: true, // ← đây mới là bảng Funds thật
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
+      where: {
+        deletedAt: null,
+      }
     });
   }
 
@@ -54,14 +61,18 @@ export class AirdropQuery {
         createdByUser: true,
         posts: true,
         tags: true,
-        funds: true,
+        funds: {
+          include: {
+            fund: true,
+          },
+        },
       },
     });
   }
 
   async findById(id: number) {
     return this.prisma.airdrop.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: {
         createdByUser: true,
         posts: true,
@@ -95,8 +106,24 @@ export class AirdropQuery {
   }
 
   async deleteById(id: number) {
-    return this.prisma.airdrop.delete({
-      where: { id },
+    return this.prisma.airdrop.update({
+      where: { id: Number(id) },
+      data: {
+        deletedAt: new Date(),
+      },
     });
   }
+
+
+  async findOneWithPosts(id: number) {
+    if (!id) throw new Error('airdropId is required');
+
+    return this.prisma.airdrop.findUnique({
+      where: { id },
+      include: {
+        posts: true,
+      },
+    });
+  }
+
 }

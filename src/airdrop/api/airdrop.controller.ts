@@ -13,6 +13,7 @@ import { AirdropQuery } from '../queries/airdrop.query';
 import { CreateAirdropDto } from './dtos/create-airdrop.dto';
 import { UpdateAirdropDto } from './dtos/update-airdrop.dto';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
+import { stat } from 'fs';
 
 @Controller('airdrop')
 export class AirdropController {
@@ -24,18 +25,7 @@ export class AirdropController {
   async getAllAirdrops() {
     const airdrops = await this.airdropQuery.findAll();
 
-    return airdrops.map((item) => ({
-      id: item.id,
-      name: item.name,
-      slug: item.slug,
-      logo: item.logo,
-      description: item.description,
-      raise: item.raise,
-      status: item.status,
-      date: item.date,
-      createdBy: item.createdByUser?.name ?? null,
-      createdAt: item.createdAt,
-    }));
+    return airdrops
   }
 
   // ✅ Tạo mới Airdrop
@@ -68,6 +58,7 @@ export class AirdropController {
       date: airdrop.date,
       createdBy: airdrop.createdByUser?.name ?? null,
       createdAt: airdrop.createdAt,
+      funds: airdrop.funds?.map((item: any) => item.fund) || [],
     };
   }
 
@@ -115,4 +106,23 @@ export class AirdropController {
     await this.airdropQuery.deleteById(id);
     return { message: 'Airdrop deleted successfully' };
   }
+
+  @Get(':id/posts')
+  async getAirdropPost(@Param('id') id: string) {
+    const airdropId = parseInt(id, 10);
+
+    const airdrop = await this.airdropQuery.findOneWithPosts(airdropId);
+
+    if (!airdrop) {
+      throw new NotFoundException('Airdrop not found');
+    }
+
+    return {
+      id: airdrop.id,
+      name: airdrop.name,
+      slug: airdrop.slug,
+      posts: airdrop.posts,
+    };
+  }
+
 }
