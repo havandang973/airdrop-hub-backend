@@ -7,88 +7,163 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id          Int         @id @default(autoincrement())
-  name        String      @unique
-  email       String      @unique
-  password    String
-  role        String      @default("user") // user, admin, editor
-  created_at  DateTime    @default(now())
-  updated_at  DateTime    @updatedAt
+model Airdrop {
+  id          Int       @id @default(autoincrement())
+  name        String
+  logo        String?
+  description String?
+  slug        String    @unique
+  raise       Float?
+  status      String?
+  date        DateTime?
+  createdBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? 
+  deletedAt   DateTime?
 
-  posts       Post[]
-  airdrops    Airdrop[]
+  // Quan hệ
+  createdByUser User?   @relation("UserCreatedAirdrops", fields: [createdBy], references: [id])
+  funds         AirdropFund[]
+  tags          AirdropTag[]
+  posts         AirdropPost[]
+
+  @@map("airdrops")
+}
+
+model Funds {
+  id          Int       @id @default(autoincrement())
+  name        String
+  logo        String?
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime?
+  deletedAt   DateTime?
+
+  // Quan hệ
+  airdrops AirdropFund[]
+
+  @@map("funds")
+}
+
+model AirdropFund {
+  id         Int      @id @default(autoincrement())
+  airdropId  Int
+  fundId     Int
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id])
+  fund    Funds   @relation(fields: [fundId], references: [id])
+
+  @@unique([airdropId, fundId])
+  @@map("airdrop_funds")
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  deletedAt DateTime?
+
+  airdrops     AirdropTag[]
+  airdropPosts AirdropPost[]
+  postTags     PostTag[]
+
+  @@map("tags")
+}
+
+model AirdropTag {
+  id         Int      @id @default(autoincrement())
+  airdropId  Int
+  tagId      Int
+
+  airdrop Airdrop @relation(fields: [airdropId], references: [id])
+  tag     Tag     @relation(fields: [tagId], references: [id])
+
+  @@unique([airdropId, tagId])
+  @@map("airdrop_tags")
+}
+
+model AirdropPost {
+  id         Int       @id @default(autoincrement())
+  name       String
+  status     String?
+  date       DateTime?
+  content    String?
+  visibility Boolean   @default(true)
+  pin        Boolean   @default(false)
+  tagId      Int?
+  createdBy  Int?
+  airdropId  Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime?
+  deletedAt  DateTime?
+
+  createdByUser User?   @relation("UserCreatedAirdropPosts", fields: [createdBy], references: [id])
+  tag           Tag?    @relation(fields: [tagId], references: [id])
+  airdrop       Airdrop @relation(fields: [airdropId], references: [id])
+
+  @@map("airdrop_posts")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String    @unique
+  password  String
+  role      String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  deletedAt DateTime?
+
+  createdAirdrops      Airdrop[]     @relation("UserCreatedAirdrops")
+  createdAirdropPosts  AirdropPost[] @relation("UserCreatedAirdropPosts")
+  createdPosts         Post[]        @relation("UserCreatedPosts")
 
   @@map("users")
 }
 
 model Category {
-  id          Int          @id @default(autoincrement())
-  name        String        @unique
-  description String?
+  id        Int       @id @default(autoincrement())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime?
+  deletedAt DateTime?
 
-  posts       Post[]
-  airdrops    Airdrop[]
+  posts Post[]
 
   @@map("categories")
 }
 
 model Post {
-  id            Int        @id @default(autoincrement())
-  title         String
-  slug          String     @unique
-  content       String?
-  thumbnail_url String?
-  created_by    Int
-  category_id   Int?
-  tag_id        Int?
-  status        String     
-  view          Int?       @default(0)
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
-  deleted_at    DateTime?  
+  id          Int       @id @default(autoincrement())
+  title       String
+  slug        String    @unique
+  thumbnail   String?
+  content     String?
+  visibility  Boolean   @default(true)
+  pin         Boolean   @default(false)
+  categoryId  Int?
+  createdBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime?
+  deletedAt   DateTime?
 
-  author    User        @relation(fields: [created_by], references: [id])
-  category  Category?   @relation(fields: [category_id], references: [id])
-  tag       Tag?        @relation(fields: [tag_id], references: [id])
+  category     Category?  @relation(fields: [categoryId], references: [id])
+  createdByUser User?     @relation("UserCreatedPosts", fields: [createdBy], references: [id])
+  postTags      PostTag[]
 
   @@map("posts")
 }
 
-model Tag {
-  id       Int     @id @default(autoincrement())
-  name     String  @unique
-  posts    Post[]
+model PostTag {
+  id       Int   @id @default(autoincrement())
+  postId   Int
+  tagId    Int
 
-  @@map("tags")
-}
+  post Post @relation(fields: [postId], references: [id])
+  tag  Tag  @relation(fields: [tagId], references: [id])
 
-model Airdrop {
-  id          Int        @id @default(autoincrement())
-  title       String
-  slug        String     @unique
-  content     String?
-  avatar      String?
-  created_by  Int
-  category_id Int?
-  status      String? 
-  total_raise Int?
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
-  deleted_at  DateTime?
-
-  author    User        @relation(fields: [created_by], references: [id])
-  category  Category?   @relation(fields: [category_id], references: [id])
-
-  @@map("airdrops")
-}
-
-model Market {
-  id         Int       @id @default(autoincrement())
-  coin       String?
-  price      Float?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-
-  @@map("markets")
+  @@unique([postId, tagId])
+  @@map("post_tags")
 }

@@ -1,110 +1,128 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Post, Query, Request, UseFilters } from "@nestjs/common";
-import { AccountQuery } from "../queries/airdrop.query";
-import { AccountResponse } from "./dtos/account.response";
-import { AccountLogResponse } from "./dtos/account-log.response";
-import { AccountLogQuery } from "../queries/account-log.query";
-import { ApiHeader } from "@nestjs/swagger";
-import { Utils } from "src/common/utils";
-import { ErrorExceptionFilter } from "src/trading/exceptions/error-exception-filter";
-import { PaginationRequest } from "src/common/pagination/pagination.request";
-import { LogTypeRequest } from "./dtos/log-type.request";
-import { E4010_InvalidAction } from "src/trading/exceptions/E4010-invalid-action";
-import { AccountLimitRequest } from "./dtos/account-limit.request";
-import { E4001_CurrencyNotSupported } from "src/trading/exceptions/E4001-currency-not-supported";
-import { CurrencyQuery } from "../queries/currency.query";
-import { SettingQuery } from "src/funding/queries/setting.query";
-import { EventEmitter2 } from "@nestjs/event-emitter";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
+import { AirdropQuery } from '../queries/airdrop.query';
+import { CreateAirdropDto } from './dtos/create-airdrop.dto';
+import { UpdateAirdropDto } from './dtos/update-airdrop.dto';
+import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
+import { stat } from 'fs';
 
-@ApiHeader({
-  name: 'Authorization',
-})
-@Controller('accounts')
-@UseFilters(ErrorExceptionFilter)
-export class AccountController {
-  public constructor(
-    private readonly accountQuery: AccountQuery,
-    private readonly accountLogQuery: AccountLogQuery,
-    private readonly currencyQuery: CurrencyQuery,
-    private readonly setting: SettingQuery,
-    private readonly events: EventEmitter2,
-  ) { }
+@Controller('airdrop')
+export class AirdropController {
+  constructor(private readonly airdropQuery: AirdropQuery) { }
 
+  // ✅ Lấy danh sách tất cả Airdrop
   @Get()
-  public async getAi(@Request() request: object) {
-    const user = request['user'];
+  @UseGuards(ApiKeyGuard)
+  async getAllAirdrops() {
+    const airdrops = await this.airdropQuery.findAll();
 
-    this.events.emit('user.online', { user });
-
-    const accounts = await this.accountQuery.findByUser(user);
-
-    return Promise.all(
-      accounts.map(async account => {
-        const item = {
-          id: account.id,
-          balance: account.balance,
-          freeBalance: await this.accountQuery.getFreeBalance(account),
-          currency: account.name,
-          name: account.currency.name,
-          estimate: account.balance.mul(account.currency.price)
-        }
-
-        return Utils.toResponse(AccountResponse, item)
-      })
-    )
+    return airdrops
   }
 
-  @Post('limits')
-  public async limits(@Request() request: object, @Body() body: AccountLimitRequest) {
-    const user = request['user'];
+  // ✅ Tạo mới Airdrop
+  @Post()
+  async createAirdrop(@Body() dto: CreateAirdropDto) {
+    const newAirdrop = await this.airdropQuery.create(dto as any);
+    return {
+      message: 'Airdrop created successfully!',
+      data: newAirdrop,
+    };
+  }
 
-    const currency = await this.currencyQuery.getByCode(body.currency, true);
-    const network = body.network;
+  // ✅ Lấy chi tiết Airdrop theo slug
+  @Get(':slug')
+  async findBySlug(@Param('slug') slug: string) {
+    const airdrop = await this.airdropQuery.findBySlug(slug);
 
-    if (!currency.isActive) {
-      throw new E4001_CurrencyNotSupported()
+    if (!airdrop) {
+      throw new NotFoundException(`Airdrop with slug "${slug}" not found`);
     }
 
     return {
-      withdrawalFee: (await this.setting.getWithdrawFee(currency, network)),
-      minWithdrawal: (await this.setting.getMinWithdraw(currency, network)),
-      maxWithdrawal: (await this.accountQuery.getMaxWithdrawal(user, currency)),
-      minDeposit: (await this.setting.getMinDeposit(currency, network)),
-    }
+      id: airdrop.id,
+      name: airdrop.name,
+      slug: airdrop.slug,
+      logo: airdrop.logo,
+      description: airdrop.description,
+      raise: airdrop.raise,
+      status: airdrop.status,
+      date: airdrop.date,
+      createdBy: airdrop.createdByUser?.name ?? null,
+      createdAt: airdrop.createdAt,
+      funds: airdrop.funds?.map((item: any) => item.fund) || [],
+    };
   }
 
-  @Get(':id/logs')
-  public async getLogsByAccount(
-    @Request() request: object,
-    @Param('id', ParseIntPipe) id: number,
-    @Query() paginate: PaginationRequest
+  // ✅ Cập nhật Airdrop theo slug
+  @Put(':slug')
+  async updateAirdrop(
+    @Param('slug') slug: string,
+    @Body() updateDto: UpdateAirdropDto,
   ) {
-    const user = request['user'];
-    const account = await this.accountQuery.getById(id);
-
-    if (!account) {
-      throw new E4010_InvalidAction()
+    const airdrop = await this.airdropQuery.findBySlug(slug);
+    if (!airdrop) {
+      throw new NotFoundException(`Airdrop with slug "${slug}" not found`);
     }
 
-    const result = await this.accountLogQuery.getByAccount(account, user.id, paginate);
-
-    const data = result.data.map(log => {
-      const item: AccountLogResponse = {
-        type: log.type,
-        currency: log.account.name,
-        change: log.change,
-        note: log.note,
-        createdAt: log.createdAt
-      }
-
-      return Utils.toResponse(AccountLogResponse, item)
-    })
+    const updated = await this.airdropQuery.updateBySlug(slug, updateDto);
+    if (!updated) {
+      throw new NotFoundException(`Failed to update airdrop with slug "${slug}"`);
+    }
 
     return {
-      data,
-      currentPage: result.currentPage,
-      lastPage: result.lastPage,
-      size: result.size,
-      total: result.total
-    }
+      message: 'Airdrop updated successfully',
+      data: {
+        id: updated.id,
+        name: updated.name,
+        slug: updated.slug,
+        logo: updated.logo,
+        description: updated.description,
+        raise: updated.raise,
+        status: updated.status,
+        date: updated.date,
+        createdBy: updated.createdByUser?.name ?? null,
+        updatedAt: updated.updatedAt,
+      },
+    };
   }
+
+  // ✅ Xóa Airdrop theo ID
+  @Delete(':id')
+  async deleteAirdrop(@Param('id') id: number) {
+    const airdrop = await this.airdropQuery.findById(id);
+    if (!airdrop) {
+      throw new NotFoundException(`Airdrop with id "${id}" not found`);
+    }
+
+    await this.airdropQuery.deleteById(id);
+    return { message: 'Airdrop deleted successfully' };
+  }
+
+  @Get(':id/posts')
+  async getAirdropPost(@Param('id') id: string) {
+    const airdropId = parseInt(id, 10);
+
+    const airdrop = await this.airdropQuery.findOneWithPosts(airdropId);
+
+    if (!airdrop) {
+      throw new NotFoundException('Airdrop not found');
+    }
+
+    return {
+      id: airdrop.id,
+      name: airdrop.name,
+      slug: airdrop.slug,
+      posts: airdrop.posts,
+    };
+  }
+
 }
