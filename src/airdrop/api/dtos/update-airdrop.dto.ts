@@ -30,4 +30,10 @@ export class UpdateAirdropDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  @Type(() => Number) // để transform string -> number nếu frontend gửi string
+  fundIds?: number[];
 }

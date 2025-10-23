@@ -13,8 +13,13 @@ export class AirdropQuery {
         posts: true,         // Danh sách các AirdropPost trong airdrop
         tags: true,
         funds: {
+          where: {
+            fund: {
+              deletedAt: null,
+            }
+          },
           include: {
-            fund: true, // ← đây mới là bảng Funds thật
+            fund: true,
           },
         },
       },
@@ -36,6 +41,7 @@ export class AirdropQuery {
     status?: string;
     date?: Date;
     createdBy: number;
+    fundIds: number[];
   }) {
     return this.prisma.airdrop.create({
       data: {
@@ -47,9 +53,13 @@ export class AirdropQuery {
         status: data.status,
         date: data.date ? new Date(data.date) : undefined,
         createdBy: data.createdBy,
+        funds: {
+          create: data.fundIds.map((id: number) => ({ fundId: id })),
+        },
       },
       include: {
         createdByUser: true,
+        funds: true
       },
     });
   }
@@ -62,6 +72,11 @@ export class AirdropQuery {
         posts: true,
         tags: true,
         funds: {
+          where: {
+            fund: {
+              deletedAt: null,
+            }
+          },
           include: {
             fund: true,
           },
@@ -82,12 +97,12 @@ export class AirdropQuery {
     });
   }
 
-  async updateBySlug(slug: string, updateDto: UpdateAirdropDto) {
-    const airdrop = await this.prisma.airdrop.findUnique({ where: { slug } });
+  async updateById(id: number, updateDto: UpdateAirdropDto) {
+    const airdrop = await this.prisma.airdrop.findUnique({ where: { id: Number(id) } });
     if (!airdrop) return null;
 
     return this.prisma.airdrop.update({
-      where: { slug },
+      where: { id: Number(id) },
       data: {
         name: updateDto.name ?? airdrop.name,
         logo: updateDto.logo ?? airdrop.logo,
@@ -95,6 +110,13 @@ export class AirdropQuery {
         raise: updateDto.raise ?? airdrop.raise,
         status: updateDto.status ?? airdrop.status,
         date: updateDto.date ? new Date(updateDto.date) : airdrop.date,
+        slug: updateDto.slug ?? airdrop.slug,
+        funds: updateDto.fundIds
+          ? {
+            deleteMany: {}, // Xóa tất cả các liên kết hiện tại
+            create: updateDto.fundIds.map((id: number) => ({ fundId: id })),
+          }
+          : undefined,
       },
       include: {
         createdByUser: true,
@@ -119,9 +141,13 @@ export class AirdropQuery {
     if (!id) throw new Error('airdropId is required');
 
     return this.prisma.airdrop.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: {
-        posts: true,
+        posts: {
+          where: {
+            deletedAt: null,
+          },
+        },
       },
     });
   }
