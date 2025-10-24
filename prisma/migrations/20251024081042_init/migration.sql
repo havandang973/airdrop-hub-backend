@@ -21,8 +21,8 @@ CREATE TABLE `airdrops` (
 CREATE TABLE `funds` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(191) NOT NULL,
-    `logo` VARCHAR(191) NULL,
     `slug` VARCHAR(191) NOT NULL,
+    `logo` VARCHAR(191) NULL,
     `description` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NULL,
@@ -70,11 +70,12 @@ CREATE TABLE `airdrop_posts` (
     `status` VARCHAR(191) NULL,
     `date` DATETIME(3) NULL,
     `content` VARCHAR(191) NULL,
-    `visibility` BOOLEAN NOT NULL DEFAULT true,
-    `pin` BOOLEAN NOT NULL DEFAULT false,
+    `visibility` BOOLEAN NULL DEFAULT true,
+    `pin` BOOLEAN NULL DEFAULT false,
+    `pin_to_home` BOOLEAN NULL DEFAULT false,
     `tagId` INTEGER NULL,
     `createdBy` INTEGER NULL,
-    `airdropId` INTEGER NOT NULL,
+    `airdropId` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NULL,
     `deletedAt` DATETIME(3) NULL,
@@ -115,8 +116,10 @@ CREATE TABLE `posts` (
     `slug` VARCHAR(191) NOT NULL,
     `thumbnail` VARCHAR(191) NULL,
     `content` VARCHAR(191) NULL,
-    `visibility` BOOLEAN NOT NULL DEFAULT true,
-    `pin` BOOLEAN NOT NULL DEFAULT false,
+    `visibility` BOOLEAN NULL DEFAULT true,
+    `view` INTEGER NULL,
+    `pin` BOOLEAN NULL DEFAULT false,
+    `pin_to_home` BOOLEAN NULL DEFAULT false,
     `categoryId` INTEGER NULL,
     `createdBy` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -159,7 +162,7 @@ ALTER TABLE `airdrop_posts` ADD CONSTRAINT `airdrop_posts_createdBy_fkey` FOREIG
 ALTER TABLE `airdrop_posts` ADD CONSTRAINT `airdrop_posts_tagId_fkey` FOREIGN KEY (`tagId`) REFERENCES `tags`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `airdrop_posts` ADD CONSTRAINT `airdrop_posts_airdropId_fkey` FOREIGN KEY (`airdropId`) REFERENCES `airdrops`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `airdrop_posts` ADD CONSTRAINT `airdrop_posts_airdropId_fkey` FOREIGN KEY (`airdropId`) REFERENCES `airdrops`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `posts` ADD CONSTRAINT `posts_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `categories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
