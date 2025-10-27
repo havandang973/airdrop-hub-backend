@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { AirdropPostModule } from './airdrop-post/airdrop-post.module';
 import { FundModule } from './fund/fund.module';
 import { PostModule } from './post/post.module';
+import { CategoryModule } from './category/category.module';
+import { TagModule } from './tag/tag.module';
 
 @Module({
   imports: [
@@ -13,6 +15,8 @@ import { PostModule } from './post/post.module';
     AirdropPostModule,
     FundModule,
     PostModule,
+    CategoryModule,
+    TagModule,
     ConfigModule.forRoot({
       isGlobal: true, // để dùng được ở mọi nơi
     }),

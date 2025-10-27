@@ -15,9 +15,9 @@ export class CreatePostDto {
     @IsString()
     title: string;
 
-    @IsNotEmpty()
-    @IsString()
-    slug: string;
+    // @IsNotEmpty()
+    // @IsString()
+    // slug: string;
 
     @IsOptional()
     @IsString()

@@ -15,9 +15,9 @@ export class UpdatePostDto {
   @IsString()
   title: string;
 
-  @IsNotEmpty()
-  @IsString()
-  slug: string;
+  // @IsNotEmpty()
+  // @IsString()
+  // slug: string;
 
   @IsOptional()
   @IsString()
@@ -54,7 +54,7 @@ export class UpdatePostDto {
   @IsInt({ each: true })
   tagIds?: number[];
 
-  @IsNotEmpty()
-  @IsInt()
-  createdBy: number;
+  // @IsNotEmpty()
+  // @IsInt()
+  // createdBy: number;
 }

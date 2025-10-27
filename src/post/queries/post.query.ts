@@ -2,6 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { CreatePostDto } from '../api/dtos/create-post.dto';
 import { UpdatePostDto } from '../api/dtos/update-post.dto';
+import { stringify } from 'querystring';
+import slugify from 'slugify';
 @Injectable()
 export class PostQuery {
   constructor(private prisma: PrismaService) { }
@@ -63,7 +65,7 @@ export class PostQuery {
     return this.prisma.post.create({
       data: {
         title: dto.title,
-        slug: dto.slug,
+        slug: slugify(dto.title, { lower: true, strict: true }),
         thumbnail: dto.thumbnail,
         content: dto.content,
         visibility: dto.visibility ?? true,
@@ -98,7 +100,7 @@ export class PostQuery {
       where: { id: Number(id) },
       data: {
         title: dto.title,
-        slug: dto.slug,
+        slug: slugify(dto.title, { lower: true, strict: true }),
         thumbnail: dto.thumbnail,
         content: dto.content,
         visibility: dto.visibility,
