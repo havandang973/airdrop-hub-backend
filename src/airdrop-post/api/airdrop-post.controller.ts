@@ -11,8 +11,8 @@ import {
 } from '@nestjs/common';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
 import { AirdropPostQuery } from '../queries/airdrop-post.query';
-import { CreateAirdropDto } from 'src/airdrop/api/dtos/create-airdrop.dto';
 import { CreateAirdropPostDto } from './dtos/create-airdrop-post.dto';
+import { UpdateAirdropPostDto } from './dtos/update-airdrop-post.dto';
 
 @Controller('airdrop-posts')
 export class AirdropPostController {
@@ -39,10 +39,22 @@ export class AirdropPostController {
 
   // GET /airdrop-posts/:id
   @Get(':id')
-  async getById(@Param('id') id: string) {
+  async getById(@Param('id') id: number) {
     const post = await this.airdropPostQuery.findById(Number(id));
     if (!post) throw new NotFoundException('Airdrop Post not found');
     return post;
+  }
+
+  @Put(':id')
+  async updateAirdropPost(
+    @Param('id') id: number,
+    @Body() dto: UpdateAirdropPostDto,
+  ) {
+    const updatedAirdrop = await this.airdropPostQuery.update(id, dto as any);
+    return {
+      message: 'Airdrop post updated successfully!',
+      data: updatedAirdrop,
+    };
   }
 
   @Post()

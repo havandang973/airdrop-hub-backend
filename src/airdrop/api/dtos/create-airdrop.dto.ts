@@ -1,4 +1,5 @@
-import { IsInt, IsOptional, IsString, IsNumber, Min, IsDateString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString, IsNumber, Min, IsDateString, IsArray } from 'class-validator';
 
 export class CreateAirdropDto {
     @IsString()
@@ -31,4 +32,10 @@ export class CreateAirdropDto {
     @IsOptional()
     @IsInt()
     createdBy?: number;
+
+    @IsOptional()
+    @IsArray()
+    @IsInt({ each: true })
+    @Type(() => Number) // để transform string -> number nếu frontend gửi string
+    fundIds?: number[];
 }

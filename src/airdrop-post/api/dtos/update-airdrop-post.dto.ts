@@ -1,27 +1,10 @@
-import { IsInt, IsOptional, IsString, IsNumber, Min, IsDateString, ValidateNested, IsArray } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsNumber, Min, IsDateString, ValidateNested, IsArray, IsNotEmpty, IsBoolean } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class UpdateAirdropDto {
-  @IsOptional()
+export class UpdateAirdropPostDto {
+  @IsNotEmpty()
   @IsString()
-  name?: string;
-
-  @IsOptional()
-  @IsString()
-  logo?: string;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @IsOptional()
-  @IsString()
-  slug?: string;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  raise?: number;
+  name: string;
 
   @IsOptional()
   @IsString()
@@ -30,4 +13,28 @@ export class UpdateAirdropDto {
   @IsOptional()
   @IsDateString()
   date?: string;
+
+  @IsOptional()
+  @IsString()
+  content?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  visibility?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  pin?: boolean;
+
+  @IsOptional()
+  @IsInt()
+  tagId?: number;
+
+  @IsOptional()
+  @IsInt()
+  createdBy: number;
+
+  @IsNotEmpty()
+  @IsInt()
+  airdropId: number;
 }

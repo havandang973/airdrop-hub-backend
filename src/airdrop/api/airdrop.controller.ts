@@ -63,25 +63,24 @@ export class AirdropController {
   }
 
   // ✅ Cập nhật Airdrop theo slug
-  @Put(':slug')
+  @Put(':id')
   async updateAirdrop(
-    @Param('slug') slug: string,
+    @Param('id') id: number,
     @Body() updateDto: UpdateAirdropDto,
   ) {
-    const airdrop = await this.airdropQuery.findBySlug(slug);
+    const airdrop = await this.airdropQuery.findById(id);
     if (!airdrop) {
-      throw new NotFoundException(`Airdrop with slug "${slug}" not found`);
+      throw new NotFoundException(`Airdrop with id "${id}" not found`);
     }
 
-    const updated = await this.airdropQuery.updateBySlug(slug, updateDto);
+    const updated = await this.airdropQuery.updateById(id, updateDto);
     if (!updated) {
-      throw new NotFoundException(`Failed to update airdrop with slug "${slug}"`);
+      throw new NotFoundException(`Failed to update airdrop with id "${id}"`);
     }
 
     return {
       message: 'Airdrop updated successfully',
       data: {
-        id: updated.id,
         name: updated.name,
         slug: updated.slug,
         logo: updated.logo,

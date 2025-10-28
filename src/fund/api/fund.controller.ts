@@ -51,11 +51,16 @@ export class FundController {
   }
 
   // ✅ Lấy chi tiết Fund theo ID
-  @Get(':slug')
-  async findByslug(@Param('slug') slug: string) {
-    const fund = await this.fundQuery.findBySlug(slug);
+  @Get(':identifier')
+  async findByIdOrSlug(@Param('identifier') identifier: string) {
+    const isNumeric = /^\d+$/.test(identifier);
+
+    const fund = isNumeric
+      ? await this.fundQuery.findById(Number(identifier))
+      : await this.fundQuery.findBySlug(identifier);
+
     if (!fund) {
-      throw new NotFoundException(`Fund with slug "${slug}" not found`);
+      throw new NotFoundException(`Fund with "${identifier}" not found`);
     }
 
     return {
@@ -69,18 +74,19 @@ export class FundController {
     };
   }
 
+
   // ✅ Cập nhật Fund theo ID
-  @Put(':slug')
+  @Put(':id')
   async updateFund(
-    @Param('slug') slug: string,
+    @Param('id') id: number,
     @Body() updateDto: UpdateFundDto,
   ) {
-    const fund = await this.fundQuery.findBySlug(slug);
+    const fund = await this.fundQuery.findById(id);
     if (!fund) {
-      throw new NotFoundException(`Fund with slug "${slug}" not found`);
+      throw new NotFoundException(`Fund with id "${id}" not found`);
     }
 
-    const updated = await this.fundQuery.updateBySlug(slug, updateDto);
+    const updated = await this.fundQuery.updateById(id, updateDto);
     return {
       message: 'Fund updated successfully!',
       data: updated,
@@ -88,14 +94,14 @@ export class FundController {
   }
 
   // ✅ Xóa mềm Fund (set deletedAt)
-  @Delete(':slug')
-  async deleteFund(@Param('slug') slug: string) {
-    const fund = await this.fundQuery.findBySlug(slug);
+  @Delete(':id')
+  async deleteFund(@Param('id') id: number) {
+    const fund = await this.fundQuery.findById(id);
     if (!fund) {
-      throw new NotFoundException(`Fund with slug "${slug}" not found`);
+      throw new NotFoundException(`Fund with Id "${id}" not found`);
     }
 
-    await this.fundQuery.softDeleteBySlug(slug);
+    await this.fundQuery.softDeleteById(id);
     return { message: 'Fund deleted successfully!' };
   }
 }

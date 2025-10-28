@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
-import { UpdateAirdropDto } from '../api/dtos/update-airdrop-post.dto';
+import { UpdateAirdropPostDto } from '../api/dtos/update-airdrop-post.dto';
 import { CreateAirdropPostDto } from '../api/dtos/create-airdrop-post.dto';
 
 @Injectable()
@@ -38,10 +38,31 @@ export class AirdropPostQuery {
     });
   }
 
+  async update(id: number, dto: UpdateAirdropPostDto) {
+    const post = await this.prisma.airdropPost.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!post) throw new NotFoundException('Airdrop Post not found');
+    return this.prisma.airdropPost.update({
+      where: { id: Number(id) },
+      data: {
+        name: dto.name,
+        status: dto.status,
+        date: dto.date ? new Date(dto.date) : undefined,
+        content: dto.content,
+        visibility: dto.visibility ?? true,
+        pin: dto.pin ?? false,
+        tagId: dto.tagId,
+        airdropId: dto.airdropId,
+      },
+    });
+  }
+
 
   async findById(id: number) {
     return this.prisma.airdropPost.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: {
         airdrop: true,
       },

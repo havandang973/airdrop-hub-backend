@@ -27,6 +27,19 @@ export class FundQuery {
       where: { slug },
       include: {
         airdrops: {
+          where: { airdrop: { deletedAt: null } },
+          include: { airdrop: true },
+        },
+      },
+    });
+  }
+
+  async findById(id: number) {
+    return this.prisma.funds.findUnique({
+      where: { id: Number(id) },
+      include: {
+        airdrops: {
+          where: { airdrop: { deletedAt: null } },
           include: { airdrop: true },
         },
       },
@@ -44,9 +57,9 @@ export class FundQuery {
     });
   }
 
-  async updateBySlug(slug: string, dto: UpdateFundDto) {
+  async updateById(id: number, dto: UpdateFundDto) {
     return this.prisma.funds.update({
-      where: { slug },
+      where: { id: Number(id) },
       data: {
         name: dto.name,
         logo: dto.logo,
@@ -56,9 +69,9 @@ export class FundQuery {
     });
   }
 
-  async softDeleteBySlug(slug: string) {
+  async softDeleteById(id: number) {
     return this.prisma.funds.update({
-      where: { slug },
+      where: { id: Number(id) },
       data: { deletedAt: new Date() },
     });
   }
