@@ -8,7 +8,7 @@ export class TagQuery {
   constructor(private readonly prisma: PrismaService) { }
 
   findAll() {
-    return this.prisma.tag.findMany({});
+    return this.prisma.tag.findMany({ where: { deletedAt: null } });
   }
 
   findById(id: number) {
@@ -31,6 +31,11 @@ export class TagQuery {
   }
 
   deleteById(id: number) {
-    return this.prisma.tag.delete({ where: { id } });
+    return this.prisma.tag.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }

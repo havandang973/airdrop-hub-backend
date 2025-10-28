@@ -7,9 +7,8 @@ import slugify from 'slugify';
 @Injectable()
 export class PostQuery {
   constructor(private prisma: PrismaService) { }
-
   // 🟩 Lấy danh sách bài viết
-  async findAll() {
+  async findAll(category?: string) {
     return this.prisma.post.findMany({
       include: {
         category: true,
@@ -21,9 +20,15 @@ export class PostQuery {
       orderBy: {
         createdAt: 'desc',
       },
-      where: {
-        deletedAt: null,
-      },
+      where:
+        category && category !== 'all'
+          ? {
+            category: {
+              name: category,
+            },
+            deletedAt: null,
+          }
+          : { deletedAt: null },
     });
   }
 

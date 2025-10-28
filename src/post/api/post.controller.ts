@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
@@ -21,8 +22,8 @@ export class PostController {
   // ✅ GET /news — lấy danh sách tất cả bài viết
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAll() {
-    const posts = await this.postQuery.findAll();
+  async getAll(@Query('category') category?: string) {
+    const posts = await this.postQuery.findAll(category);
     return posts.map((post) => ({
       id: post.id,
       title: post.title,
@@ -44,6 +45,7 @@ export class PostController {
       postTags: post.postTags?.map((t) => t.tag?.name) ?? [],
     }));
   }
+
   @Get(':identifier')
   async findByIdOrSlug(@Param('identifier') identifier: string) {
     const isNumeric = /^\d+$/.test(identifier);
