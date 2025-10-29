@@ -22,8 +22,8 @@ export class PostController {
   // ✅ GET /news — lấy danh sách tất cả bài viết
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAll(@Query('category') category?: string) {
-    const posts = await this.postQuery.findAll(category);
+  async getAll(@Query('category') category?: string, @Query('visibility') visibility?: boolean) {
+    const posts = await this.postQuery.findAll(category, visibility);
     return posts.map((post) => ({
       id: post.id,
       title: post.title,

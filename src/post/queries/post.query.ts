@@ -2,13 +2,25 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { CreatePostDto } from '../api/dtos/create-post.dto';
 import { UpdatePostDto } from '../api/dtos/update-post.dto';
-import { stringify } from 'querystring';
 import slugify from 'slugify';
 @Injectable()
 export class PostQuery {
   constructor(private prisma: PrismaService) { }
   // 🟩 Lấy danh sách bài viết
-  async findAll(category?: string) {
+  async findAll(category?: string, visibility?: boolean) {
+    const where: any = {
+      deletedAt: null,
+    };
+
+    if (category && category !== 'all') {
+      where.category = { name: category };
+    }
+
+    if (visibility !== undefined) {
+      where.visibility = Boolean(visibility);
+
+    }
+
     return this.prisma.post.findMany({
       include: {
         category: true,
@@ -20,17 +32,10 @@ export class PostQuery {
       orderBy: {
         createdAt: 'desc',
       },
-      where:
-        category && category !== 'all'
-          ? {
-            category: {
-              name: category,
-            },
-            deletedAt: null,
-          }
-          : { deletedAt: null },
+      where,
     });
   }
+
 
   // 🟦 Lấy chi tiết 1 bài viết
   async findById(id: number) {
