@@ -14,7 +14,7 @@ import { TagQuery } from '../queries/tag.query';
 import { CreateTagDto } from './dtos/create-tag.dto';
 import { UpdateTagDto } from './dtos/update-tag.dto';
 
-@Controller('tag')
+@Controller('tags')
 export class TagController {
   constructor(private readonly tagQuery: TagQuery) { }
 

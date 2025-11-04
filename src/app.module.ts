@@ -8,6 +8,8 @@ import { FundModule } from './fund/fund.module';
 import { PostModule } from './post/post.module';
 import { CategoryModule } from './category/category.module';
 import { TagModule } from './tag/tag.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './users/user.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { TagModule } from './tag/tag.module';
     ConfigModule.forRoot({
       isGlobal: true, // để dùng được ở mọi nơi
     }),
+    AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

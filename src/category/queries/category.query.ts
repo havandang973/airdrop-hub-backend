@@ -9,7 +9,7 @@ export class CategoryQuery {
 
   // 🟢 Lấy tất cả category
   findAll() {
-    return this.prisma.category.findMany({});
+    return this.prisma.category.findMany({ where: { deletedAt: null }, });
   }
 
   // 🟢 Lấy category theo ID
@@ -36,8 +36,9 @@ export class CategoryQuery {
 
   // 🔴 Xóa category
   deleteById(id: number) {
-    return this.prisma.category.delete({
-      where: { id },
+    return this.prisma.category.update({
+      where: { id: Number(id) },
+      data: { deletedAt: new Date() },
     });
   }
 }
