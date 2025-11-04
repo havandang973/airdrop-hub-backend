@@ -17,6 +17,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: any) {
+        console.log("payload", payload);
         return this.userQuery.findByEmail(payload.email);
     }
+
+    // async validate(payload: any) {
+    //     // payload là data trong token
+    //     console.log("payload", payload);
+    //     return { id: payload.sub, email: payload.email };
+    // }
+
+
 }

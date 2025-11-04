@@ -42,4 +42,18 @@ export class AuthService {
         res.clearCookie('token');
         return { message: 'Logout successful' };
     }
+
+    async getProfile(user: any) {
+        console.log("user", user)
+        return this.usersQuery.findUnique({
+            where: { id: user.id },
+            select: {
+                id: true,
+                email: true,
+                name: true,
+                role: true,
+                createdAt: true,
+            },
+        });
+    }
 }

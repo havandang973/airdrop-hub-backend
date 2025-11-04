@@ -31,6 +31,7 @@ export class AirdropQuery {
       }
     });
   }
+
   async create(data: {
     name: string;
     slug: string;
