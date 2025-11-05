@@ -1,35 +1,92 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/common/services/prisma.service';
 import { UpdateAirdropDto } from '../api/dtos/update-airdrop.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AirdropQuery {
   constructor(private prisma: PrismaService) { }
 
-  async findAll() {
-    return this.prisma.airdrop.findMany({
-      include: {
-        createdByUser: true, // Quan hệ với User (người tạo)
-        posts: true,         // Danh sách các AirdropPost trong airdrop
-        tags: true,
-        funds: {
-          where: {
-            fund: {
-              deletedAt: null,
-            }
+  async findAll(filters?: {
+    name?: string;
+    status?: string;
+    fund?: string;
+    minRaise?: number;
+    maxRaise?: number;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }) {
+    const page = Number(filters?.page) || 1;
+    const size = Number(filters?.size) || 10;
+
+    const where: Prisma.AirdropWhereInput = {
+      deletedAt: null,
+
+      ...(filters?.name && {
+        name: { contains: filters.name },
+      }),
+
+      ...(filters?.status && { status: filters.status }),
+
+      ...(filters?.minRaise || filters?.maxRaise
+        ? {
+          raise: {
+            gte: filters?.minRaise || undefined,
+            lte: filters?.maxRaise || undefined,
           },
-          include: {
-            fund: true,
+        }
+        : {}),
+
+      ...(filters?.startDate || filters?.endDate
+        ? {
+          date: {
+            gte: filters?.startDate ? new Date(filters.startDate) : undefined,
+            lte: filters?.endDate ? new Date(filters.endDate) : undefined,
+          },
+        }
+        : {}),
+
+      ...(filters?.fund && {
+        funds: {
+          some: {
+            fund: {
+              name: { contains: filters.fund },
+            },
           },
         },
+      }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.airdrop.findMany({
+        where,
+        skip: (page - 1) * size,
+        take: size,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          createdByUser: true,
+          posts: true,
+          tags: true,
+          funds: {
+            where: { fund: { deletedAt: null } },
+            include: { fund: true },
+          },
+        },
+      }),
+      this.prisma.airdrop.count({ where }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        size,
+        totalPages: Math.ceil(total / size),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      where: {
-        deletedAt: null,
-      }
-    });
+    };
   }
 
   async create(data: {

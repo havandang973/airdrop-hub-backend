@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { FundQuery } from '../queries/fund.query';
@@ -21,10 +22,29 @@ export class FundController {
   // ✅ Lấy danh sách tất cả Funds
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAllFunds() {
+  async getAllFunds(
+    @Query('name') name?: string,
+    @Query('minRaise') minRaise?: string,
+    @Query('maxRaise') maxRaise?: string,
+    @Query('status') status?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number
+  ) {
 
-    const funds = await this.fundQuery.findAll();
-    return funds.map((fund) => ({
+    const { data, pagination } = await this.fundQuery.findAll({
+      name,
+      minRaise: Number(minRaise),
+      maxRaise: Number(maxRaise),
+      status,
+      startDate,
+      endDate,
+      page: Number(page),
+      size: Number(size)
+    });
+
+    const formattedData = data.map((fund) => ({
       id: fund.id,
       name: fund.name,
       logo: fund.logo,
@@ -38,6 +58,11 @@ export class FundController {
         logo: a.airdrop.logo,
       })) || [],
     }));
+
+    return {
+      data: formattedData,
+      pagination,
+    };
   }
 
   // ✅ Tạo mới Fund
@@ -52,25 +77,36 @@ export class FundController {
 
   // ✅ Lấy chi tiết Fund theo ID
   @Get(':identifier')
-  async findByIdOrSlug(@Param('identifier') identifier: string) {
+  async findByIdOrSlug(
+    @Param('identifier') identifier: string,
+    @Query('name') name?: string,
+    @Query('minRaise') minRaise?: string,
+    @Query('maxRaise') maxRaise?: string,
+    @Query('status') status?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number
+  ) {
     const isNumeric = /^\d+$/.test(identifier);
 
-    const fund = isNumeric
+    const fund: any = isNumeric
       ? await this.fundQuery.findById(Number(identifier))
-      : await this.fundQuery.findBySlug(identifier);
+      : await this.fundQuery.findBySlug(identifier, { name, minRaise: Number(minRaise), maxRaise: Number(maxRaise), status, startDate, endDate, page: Number(page), size: Number(size) });
 
     if (!fund) {
       throw new NotFoundException(`Fund with "${identifier}" not found`);
     }
 
     return {
-      id: fund.id,
-      name: fund.name,
-      logo: fund.logo,
-      description: fund.description,
-      createdAt: fund.createdAt,
-      updatedAt: fund.updatedAt,
-      airdrops: fund.airdrops?.map((a) => a.airdrop) || [],
+      id: fund?.data?.id,
+      name: fund?.data?.name,
+      logo: fund?.data?.logo,
+      description: fund?.data?.description,
+      createdAt: fund?.data?.createdAt,
+      updatedAt: fund?.data?.updatedAt,
+      airdrops: fund?.data?.airdrops?.map((a) => a.airdrop) || [],
+      pagination: fund?.pagination
     };
   }
 

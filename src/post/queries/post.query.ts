@@ -7,35 +7,65 @@ import slugify from 'slugify';
 export class PostQuery {
   constructor(private prisma: PrismaService) { }
   // 🟩 Lấy danh sách bài viết
-  async findAll(category?: string, visibility?: boolean) {
+  async findAll(filters: {
+    title?: string,
+    category?: string,
+    visibility?: boolean,
+    page?: number,
+    size?: number
+  }) {
     const where: any = {
       deletedAt: null,
     };
 
-    if (category && category !== 'all') {
-      where.category = { name: category };
+    if (filters?.title) {
+      where.title = { contains: filters?.title, mode: 'insensitive' };
     }
 
-    if (visibility !== undefined) {
-      where.visibility = Boolean(visibility);
-
+    if (filters?.category && filters?.category !== 'all') {
+      where.category = { name: filters?.category };
     }
 
-    return this.prisma.post.findMany({
-      include: {
-        category: true,
-        createdByUser: true,
-        postTags: {
-          include: { tag: true },
+    if (filters?.visibility !== undefined) {
+      where.visibility = Boolean(filters?.visibility);
+    }
+
+    const page = Number(filters?.page) || 1;
+    const size = Number(filters?.size) || 10;
+
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({
+        include: {
+          category: true,
+          createdByUser: true,
+          postTags: {
+            include: { tag: true },
+          },
         },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      where,
-    });
-  }
+        orderBy: {
+          createdAt: 'desc',
+        },
+        where,
+        skip: (page - 1) * size,
+        take: size,
+      }),
 
+      this.prisma.post.count({
+        where: where,
+      }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        size,
+        totalPages: Math.ceil(total / size),
+      },
+    };
+
+  }
 
   // 🟦 Lấy chi tiết 1 bài viết
   async findById(id: number) {
