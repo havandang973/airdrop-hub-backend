@@ -20,10 +20,10 @@ export class AirdropPostQuery {
 
     const where: any = {
       deletedAt: null,
-      ...(filters?.name && { name: { contains: filters.name, mode: 'insensitive' } }),
+      ...(filters?.name && { name: { contains: filters.name } }),
       ...(filters?.status && { status: filters.status }),
       ...(filters?.date && { date: new Date(filters.date) }),
-      ...(filters?.airdropId && { airdropId: filters.airdropId }),
+      ...(filters?.airdropId && { airdropId: Number(filters.airdropId) }),
     };
 
     const [data, total] = await Promise.all([

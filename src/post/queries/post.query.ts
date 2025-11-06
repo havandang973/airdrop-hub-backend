@@ -19,7 +19,7 @@ export class PostQuery {
     };
 
     if (filters?.title) {
-      where.title = { contains: filters?.title, mode: 'insensitive' };
+      where.title = { contains: filters?.title };
     }
 
     if (filters?.category && filters?.category !== 'all') {

@@ -24,6 +24,7 @@ export class FundController {
   @UseGuards(ApiKeyGuard)
   async getAllFunds(
     @Query('name') name?: string,
+    @Query('fund') fund?: string,
     @Query('minRaise') minRaise?: string,
     @Query('maxRaise') maxRaise?: string,
     @Query('status') status?: string,
@@ -35,6 +36,7 @@ export class FundController {
 
     const { data, pagination } = await this.fundQuery.findAll({
       name,
+      fund,
       minRaise: Number(minRaise),
       maxRaise: Number(maxRaise),
       status,

@@ -10,6 +10,7 @@ export class FundQuery {
 
   async findAll(filters: {
     name?: string;
+    fund?: string;
     minRaise?: number;
     maxRaise?: number;
     status?: string;
@@ -20,6 +21,7 @@ export class FundQuery {
   }) {
     const {
       name,
+      fund,
       minRaise,
       maxRaise,
       status,
@@ -32,13 +34,14 @@ export class FundQuery {
     // Điều kiện lọc cho fund
     const whereFund: any = {
       deletedAt: null,
+      ...(fund ? { name: { contains: fund } } : {}),
     };
 
     // Điều kiện lọc cho các airdrop trong fund
     const airdropWhere: any = {
       airdrop: {
         deletedAt: null,
-        ...(name ? { name: { contains: name, mode: "insensitive" } } : {}),
+        ...(name ? { name: { contains: name } } : {}),
         ...(status ? { status } : {}),
         ...(minRaise || maxRaise
           ? {
@@ -95,7 +98,6 @@ export class FundQuery {
       },
     };
   }
-
 
 
   async findBySlug(
