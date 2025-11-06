@@ -77,7 +77,7 @@ export class FundQuery {
         },
         orderBy: { createdAt: "desc" },
         skip,
-        take: Number(take),
+        take,
       }),
 
       this.prisma.funds.count({
