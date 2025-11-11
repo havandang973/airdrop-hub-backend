@@ -7,19 +7,52 @@ import { CreateAirdropPostDto } from '../api/dtos/create-airdrop-post.dto';
 export class AirdropPostQuery {
   constructor(private prisma: PrismaService) { }
 
-  async findAll() {
-    return this.prisma.airdropPost.findMany({
-      include: {
-        airdrop: true,
+  async findAll(filters?: {
+    name?: string;
+    status?: string;
+    date?: string;
+    airdropId?: number;
+    page?: number;
+    size?: number;
+  }) {
+    const page = Number(filters?.page) || 1;
+    const size = Number(filters?.size) || 10;
+
+    const where: any = {
+      deletedAt: null,
+      ...(filters?.name && { name: { contains: filters.name } }),
+      ...(filters?.status && { status: filters.status }),
+      ...(filters?.date && { date: new Date(filters.date) }),
+      ...(filters?.airdropId && { airdropId: Number(filters.airdropId) }),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.airdropPost.findMany({
+        where,
+        include: {
+          airdrop: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip: (page - 1) * size,
+        take: size,
+      }),
+
+      this.prisma.airdropPost.count({ where }), // đếm tổng bản ghi
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        size,
+        totalPages: Math.ceil(total / size),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      where: {
-        deletedAt: null,
-      }
-    });
+    };
   }
+
 
   async create(dto: CreateAirdropPostDto) {
     console.log('📦 DTO nhận được trong AirdropPostQuery.create:', dto);

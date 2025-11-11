@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
@@ -21,9 +22,24 @@ export class AirdropPostController {
   // ✅ Lấy danh sách tất cả Airdrop
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAll() {
-    const posts = await this.airdropPostQuery.findAll();
-    return posts.map((post) => ({
+  async getAll(
+    @Query('name') name?: string,
+    @Query('status') status?: string,
+    @Query('date') date?: string,
+    @Query('airdropId') airdropId?: number,
+    @Query('page') page?: number,
+    @Query('size') size?: number,
+  ) {
+    const { data, pagination } = await this.airdropPostQuery.findAll({
+      name,
+      status,
+      date,
+      airdropId,
+      page,
+      size,
+    });
+
+    const formattedData = data.map((post) => ({
       id: post.id,
       name: post.name,
       content: post.content,
@@ -35,6 +51,11 @@ export class AirdropPostController {
         ? { id: post.airdrop.id, name: post.airdrop.name }
         : null,
     }));
+
+    return {
+      data: formattedData,
+      pagination,
+    };
   }
 
   // GET /airdrop-posts/:id

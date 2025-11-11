@@ -7,13 +7,13 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AirdropQuery } from '../queries/airdrop.query';
 import { CreateAirdropDto } from './dtos/create-airdrop.dto';
 import { UpdateAirdropDto } from './dtos/update-airdrop.dto';
 import { ApiKeyGuard } from 'src/common/guards/api-key.guard';
-import { stat } from 'fs';
 
 @Controller('airdrop')
 export class AirdropController {
@@ -22,11 +22,30 @@ export class AirdropController {
   // ✅ Lấy danh sách tất cả Airdrop
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAllAirdrops() {
-    const airdrops = await this.airdropQuery.findAll();
-
-    return airdrops
+  async getAllAirdrops(
+    @Query('name') name?: string,
+    @Query('status') status?: string,
+    @Query('fund') fund?: string,
+    @Query('minRaise') minRaise?: string,
+    @Query('maxRaise') maxRaise?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('page') page?: number,
+    @Query('size') size?: number
+  ) {
+    return this.airdropQuery.findAll({
+      name,
+      status,
+      fund,
+      minRaise: Number(minRaise),
+      maxRaise: Number(maxRaise),
+      startDate,
+      endDate,
+      page,
+      size
+    });
   }
+
 
   // ✅ Tạo mới Airdrop
   @Post()

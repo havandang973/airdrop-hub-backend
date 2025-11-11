@@ -8,31 +8,189 @@ import slugify from 'slugify';
 export class FundQuery {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll() {
-    return this.prisma.funds.findMany({
-      where: { deletedAt: null },
-      include: {
-        airdrops: {
-          include: {
-            airdrop: true,
+  async findAll(filters: {
+    name?: string;
+    fund?: string;
+    minRaise?: number;
+    maxRaise?: number;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    page?: number;
+    size?: number;
+  }) {
+    const {
+      name,
+      fund,
+      minRaise,
+      maxRaise,
+      status,
+      startDate,
+      endDate,
+      page = 1,
+      size = 10,
+    } = filters;
+
+    // Điều kiện lọc cho fund
+    const whereFund: any = {
+      deletedAt: null,
+      ...(fund ? { name: { contains: fund } } : {}),
+    };
+
+    // Điều kiện lọc cho các airdrop trong fund
+    const airdropWhere: any = {
+      airdrop: {
+        deletedAt: null,
+        ...(name ? { name: { contains: name } } : {}),
+        ...(status ? { status } : {}),
+        ...(minRaise || maxRaise
+          ? {
+            raise: {
+              ...(minRaise ? { gte: minRaise } : {}),
+              ...(maxRaise ? { lte: maxRaise } : {}),
+            },
+          }
+          : {}),
+        ...(startDate || endDate
+          ? {
+            date: {
+              ...(startDate ? { gte: new Date(startDate) } : {}),
+              ...(endDate ? { lte: new Date(endDate) } : {}),
+            },
+          }
+          : {}),
+      },
+    };
+
+    const skip = (page - 1) * size;
+    const take = size;
+
+    // Lấy data & total song song
+    const [data, total] = await Promise.all([
+      this.prisma.funds.findMany({
+        where: whereFund,
+        include: {
+          airdrops: {
+            where: airdropWhere,
+            include: { airdrop: true },
+            orderBy: {
+              airdrop: { createdAt: "desc" },
+            },
           },
         },
+        orderBy: { createdAt: "desc" },
+        skip,
+        take,
+      }),
+
+      this.prisma.funds.count({
+        where: whereFund,
+      }),
+    ]);
+
+    return {
+      data,
+      pagination: {
+        total,
+        page,
+        size,
+        totalPages: Math.ceil(total / size),
       },
-      orderBy: { createdAt: 'desc' },
-    });
+    };
   }
 
-  async findBySlug(slug: string) {
-    return this.prisma.funds.findUnique({
+
+  async findBySlug(
+    slug: string,
+    filters: {
+      name?: string;
+      minRaise?: number;
+      maxRaise?: number;
+      status?: string;
+      startDate?: string;
+      endDate?: string;
+      page?: number;
+      size?: number;
+    },
+  ) {
+    const {
+      name,
+      minRaise,
+      maxRaise,
+      status,
+      startDate,
+      endDate,
+      page = 1,
+      size = 10,
+    } = filters;
+
+    // ✅ Điều kiện where cho airdrops
+    const airdropWhere: any = {
+      airdrop: {
+        deletedAt: null,
+        ...(name ? { name: { contains: name } } : {}),
+        ...(status ? { status } : {}),
+        ...(minRaise || maxRaise
+          ? {
+            raise: {
+              ...(minRaise ? { gte: minRaise } : {}),
+              ...(maxRaise ? { lte: maxRaise } : {}),
+            },
+          }
+          : {}),
+        ...(startDate || endDate
+          ? {
+            date: {
+              ...(startDate ? { gte: new Date(startDate) } : {}),
+              ...(endDate ? { lte: new Date(endDate) } : {}),
+            },
+          }
+          : {}),
+      },
+    };
+
+    const skip = (page - 1) * size;
+    const take = size;
+
+    // ✅ Lấy fund (chỉ 1)
+    const fund = await this.prisma.funds.findUnique({
       where: { slug },
       include: {
         airdrops: {
-          where: { airdrop: { deletedAt: null } },
+          where: airdropWhere,
           include: { airdrop: true },
+          orderBy: {
+            airdrop: {
+              createdAt: 'desc',
+            },
+          },
+          skip,
+          take,
         },
       },
     });
+
+    if (!fund) return null;
+
+    // ✅ Đếm tổng record để phân trang
+    const total = await this.prisma.airdropFund.count({
+      where: {
+        fund: { slug },
+        ...airdropWhere,
+      },
+    });
+
+    return {
+      data: fund,
+      pagination: {
+        total,
+        page,
+        size,
+        totalPages: Math.ceil(total / size),
+      },
+    };
   }
+
 
   async findById(id: number) {
     return this.prisma.funds.findUnique({

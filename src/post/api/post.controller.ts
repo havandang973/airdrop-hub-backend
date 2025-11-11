@@ -22,9 +22,16 @@ export class PostController {
   // ✅ GET /news — lấy danh sách tất cả bài viết
   @Get()
   @UseGuards(ApiKeyGuard)
-  async getAll(@Query('category') category?: string, @Query('visibility') visibility?: boolean) {
-    const posts = await this.postQuery.findAll(category, visibility);
-    return posts.map((post) => ({
+  async getAll(
+    @Query('title') title?: string,
+    @Query('category') category?: string,
+    @Query('visibility') visibility?: boolean,
+    @Query('page') page?: number,
+    @Query('size') size?: number
+  ) {
+    const { data, pagination } = await this.postQuery.findAll({ title, category, visibility, page, size });
+
+    const formattedData = data.map((post) => ({
       id: post.id,
       title: post.title,
       slug: post.slug,
@@ -44,6 +51,11 @@ export class PostController {
         : null,
       postTags: post.postTags?.map((t) => t.tag?.name) ?? [],
     }));
+
+    return {
+      data: formattedData,
+      pagination,
+    };
   }
 
   @Get(':identifier')
