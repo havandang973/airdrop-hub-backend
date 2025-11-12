@@ -15,10 +15,17 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://192.168.1.233:3000', 'http://206.189.47.57:3000'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    origin: (origin, callback) => {
+      const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.233:3000', 'http://206.189.47.57:3000'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   });
+
 
   await app.listen(process.env.PORT ?? 3001, '0.0.0.0');
 }
