@@ -10,6 +10,7 @@ import { CategoryModule } from './category/category.module';
 import { TagModule } from './tag/tag.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './users/user.module';
+import { MarketModule } from './market/market.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from './users/user.module';
     PostModule,
     CategoryModule,
     TagModule,
+    MarketModule,
     ConfigModule.forRoot({
       isGlobal: true, // để dùng được ở mọi nơi
     }),
